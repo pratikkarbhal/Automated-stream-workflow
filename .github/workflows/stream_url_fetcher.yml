@@ -14,14 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          node-version: '14' # Adjust the version as needed
+          python-version: '3.9' # Adjust the version as needed
 
       - name: Install dependencies
         run: |
-          npm install puppeteer
+          pip install pyppeteer
 
       - name: Run fetch_stream.py
         env:
