@@ -8,31 +8,21 @@ on:
       - main  # Triggers on push to main
 
 jobs:
-  fetch-url:
+  fetch_m3u8:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          python-version: '3.8'
-
-      - name: Install Chrome and ChromeDriver
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-          CHROMEDRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE)
-          wget https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/bin/chromedriver
-          sudo chmod +x /usr/bin/chromedriver
+          node-version: '14'  # You can specify any version you prefer
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install selenium selenium-wire webdriver-manager blinker
+          npm install puppeteer
 
-      - name: Run fetch_stream.py
-        run: python fetch_stream.py
+      - name: Run M3U8 fetch script
+        run: node fetch_m3u8.js
