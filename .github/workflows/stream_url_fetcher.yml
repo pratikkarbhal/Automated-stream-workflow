@@ -1,6 +1,7 @@
 name: Stream URL Fetcher
 
 on:
+  workflow_dispatch:  # Allows manual runs
   schedule:
     - cron: '*/5 * * * *'  # Runs every 5 minutes
 
@@ -12,20 +13,11 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v2
 
-    - name: Set up Python environment
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
+    - name: Set up Selenium with Chrome
+      uses: seleniumbase/setup-selenium@v1
 
-    - name: Install dependencies
-      run: |
-        pip install selenium undetected-chromedriver
-
-    - name: Download ChromeDriver
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y chromium-chromedriver
-        ln -s /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
+    - name: Install Dependencies
+      run: pip install selenium
 
     - name: Run Python Script
       run: python fetch_stream.py
