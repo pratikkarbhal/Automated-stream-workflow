@@ -36,11 +36,11 @@ const puppeteer = require('puppeteer');
 
         await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', {
             waitUntil: 'networkidle2', // Wait for network to settle
-            timeout: 60000, // 1-minute timeout
+            timeout: 120000, // 1-minute timeout
         });
 
         console.log('Waiting for XHR requests...');
-        await new Promise((resolve) => setTimeout(resolve, 10000)); // 10-second wait
+        await new Promise((resolve) => setTimeout(resolve, 60000)); // 10-second wait
 
         // Print collected M3U8 URLs
         if (m3u8Urls.length > 0) {
