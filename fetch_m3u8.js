@@ -2,8 +2,15 @@ const puppeteer = require('puppeteer');
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: false, // Set to false to visually observe what’s happening.
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: 'new', // Ensures the correct headless mode is used
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--disable-software-rasterizer',
+            '--window-size=1920,1080',
+        ],
     });
 
     const page = await browser.newPage();
@@ -11,41 +18,33 @@ const puppeteer = require('puppeteer');
 
     const m3u8Urls = [];
 
-    // Intercept and log all XHR requests and responses
+    // Intercept XHR requests and look for .m3u8 URLs
     await page.setRequestInterception(true);
-
-    page.on('request', (request) => {
-        request.continue();
-    });
+    page.on('request', (request) => request.continue());
 
     page.on('response', async (response) => {
         const url = response.url();
-        const type = response.request().resourceType();
-        if (type === 'xhr' && url.includes('.m3u8')) {
+        if (url.includes('.m3u8')) {
             m3u8Urls.push(url);
             console.log(`M3U8 URL Found: ${url}`);
         }
     });
 
     try {
-        // Navigate to the target URL with extended timeout
+        console.log('Navigating to the page...');
         await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', {
-            waitUntil: 'networkidle2', // Ensure page is fully loaded
-            timeout: 60000, // Increase timeout
+            waitUntil: 'networkidle2',
+            timeout: 60000,
         });
 
-        // Wait and simulate interaction with the player
-        console.log('Simulating interaction...');
-        await page.waitForSelector('video', { timeout: 20000 }); // Adjust if different selector is needed
-        await page.click('video'); // Simulate clicking the video to start playback
+        console.log('Waiting for video element...');
+        await page.waitForSelector('video', { timeout: 20000 });
+        await page.click('video'); // Simulate click to start the stream
 
-        // Wait to capture delayed media requests (2 minutes as you mentioned)
-        console.log('Waiting for 2 minutes to capture streams...');
-        await new Promise(resolve => setTimeout(resolve, 120000)); // Wait 2 minutes
+        console.log('Observing for network activity...');
+        await new Promise((resolve) => setTimeout(resolve, 120000)); // Wait 2 minutes
 
-        // Output collected M3U8 URLs
-        console.log('M3U8 URLs:', m3u8Urls.length > 0 ? m3u8Urls : 'No M3U8 URLs found.');
-
+        console.log('M3U8 URLs found:', m3u8Urls.length ? m3u8Urls : 'None found.');
     } catch (error) {
         console.error('Error during execution:', error);
     } finally {
