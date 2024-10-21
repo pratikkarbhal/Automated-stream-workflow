@@ -18,7 +18,7 @@ def fetch_stream_url():
             print("Fetched Stream URL:", stream_url)
             return stream_url
         else:
-            print("Stream URL not found.")
+            print("Stream URL not found..")
             return None
 
     except requests.RequestException as e:
