@@ -6,7 +6,8 @@ on:
   push:
     branches:
       - main  # Triggers on push to main
-      
+
+
 jobs:
   fetch-url:
     runs-on: ubuntu-latest
@@ -22,9 +23,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install selenium
-          apt-get update
-          apt-get install -y chromium-chromedriver
-          cp /usr/bin/chromedriver /usr/bin/chromedriver
+          sudo apt-get update
+          sudo apt-get install -y chromium-chromedriver
+          sudo cp /usr/bin/chromedriver /usr/bin/chromedriver
 
       - name: Run fetch_stream.py
         run: python fetch_stream.py
