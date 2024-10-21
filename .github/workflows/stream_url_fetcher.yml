@@ -22,16 +22,28 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests
 
+    - name: Install Google Chrome
+      run: |
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+
+    - name: Get Chrome Version
+      id: get_chrome_version
+      run: |
+        echo "CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')" >> $GITHUB_ENV
+        echo "Chrome version: $CHROME_VERSION"
+
     - name: Download ChromeDriver
       run: |
-        CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-        echo "Chrome Version: $CHROME_VERSION"
+        echo "Downloading ChromeDriver for Chrome version: $CHROME_VERSION"
         CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-        echo "Downloading ChromeDriver version: $CHROMEDRIVER_VERSION"
+        echo "ChromeDriver version to download: $CHROMEDRIVER_VERSION"
         wget "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
         unzip chromedriver_linux64.zip
         chmod +x chromedriver
-        sudo mv chromedriver /usr/local/bin/  # Move it to /usr/local/bin for easy access
+        sudo mv chromedriver /usr/local/bin/
 
     - name: Run Stream URL Fetcher
       run: |
