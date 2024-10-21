@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: false, // Disable headless for troubleshooting
+        headless: true, // Disable headless for troubleshooting
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
