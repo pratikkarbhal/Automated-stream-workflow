@@ -37,11 +37,11 @@ const puppeteer = require('puppeteer');
         // Increase timeout to avoid errors during slow loads
         await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', {
             waitUntil: 'networkidle2',  // Ensure all requests are complete
-            timeout: 60000  // 60 seconds timeout
+            timeout: 120000  // 60 seconds timeout
         });
 
         console.log('Waiting for potential XHR requests...');
-        await page.waitForTimeout(10000);  // Allow extra time for network requests
+        await page.waitForTimeout(60000);  // Allow extra time for network requests
 
         // Log the collected M3U8 URLs
         if (m3u8Urls.length > 0) {
