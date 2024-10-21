@@ -14,15 +14,10 @@ def get_stream_url():
     
     # Enable performance logging
     chrome_options.add_experimental_option('w3c', False)  # Important for logging
-    chrome_options.add_experimental_option('prefs', {
-        "profile.default_content_setting_values.notifications": 2  # Disable notifications
-    })
-    
-    # Setting up the logging preferences
     chrome_options.add_experimental_option('loggingPrefs', {
         'performance': 'ALL',  # Enable performance logging
     })
-    
+
     # Set the path to the ChromeDriver
     service = Service('/usr/bin/chromedriver')
     driver = webdriver.Chrome(service=service, options=chrome_options)
