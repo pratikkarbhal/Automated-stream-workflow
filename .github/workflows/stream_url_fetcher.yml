@@ -33,13 +33,17 @@ jobs:
     - name: Get Chrome Version
       id: get_chrome_version
       run: |
-        echo "CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')" >> $GITHUB_ENV
+        CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+        MAJOR_VERSION=$(echo $CHROME_VERSION | cut -d '.' -f 1)
+        echo "CHROME_VERSION=$CHROME_VERSION" >> $GITHUB_ENV
+        echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
         echo "Chrome version: $CHROME_VERSION"
+        echo "Major version: $MAJOR_VERSION"
 
     - name: Download ChromeDriver
       run: |
-        echo "Downloading ChromeDriver for Chrome version: $CHROME_VERSION"
-        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+        echo "Downloading ChromeDriver for Chrome major version: $MAJOR_VERSION"
+        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$MAJOR_VERSION")
         echo "ChromeDriver version to download: $CHROMEDRIVER_VERSION"
         wget "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
         unzip chromedriver_linux64.zip
@@ -49,3 +53,4 @@ jobs:
     - name: Run Stream URL Fetcher
       run: |
         python fetch_stream.py
+
