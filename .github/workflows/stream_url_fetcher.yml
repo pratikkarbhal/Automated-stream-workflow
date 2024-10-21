@@ -7,18 +7,18 @@ on:
     branches:
       - main  # Triggers on push to main
 
-
 jobs:
-  fetch-url:
+  fetch_m3u8_url:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Adjust the version as needed
+          python-version: '3.9'
 
       - name: Install dependencies
         run: |
@@ -28,4 +28,5 @@ jobs:
           sudo cp /usr/bin/chromedriver /usr/bin/chromedriver
 
       - name: Run fetch_stream.py
-        run: python fetch_stream.py
+        run: |
+          python fetch_stream.py
