@@ -1,46 +1,29 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 
 (async () => {
-    const browser = await puppeteer.launch({
-        headless: true, // Run in headless mode
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    });
-
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
-
-    // Intercept requests
-    await page.setRequestInterception(true);
-    page.on('request', (request) => {
-        request.continue();
-    });
-
-    // Log only XHR responses
-    page.on('response', async (response) => {
+    
+    // Listen for network requests and responses
+    page.on('response', async response => {
         const url = response.url();
-        const request = response.request();
+        const status = response.status();
+        const contentType = response.headers()['content-type'];
         
-        // Check if the response is an XHR request
-        if (request.resourceType() === 'xhr') {
-            console.log(`XHR Response URL: ${url}`); // Log the XHR response URLs
-
-            // Check for .m3u8 URLs
-            if (url.endsWith('.m3u8')) {
-                console.log(`M3U8 URL found: ${url}`);
-            }
+        // Log all XHR responses
+        if (response.request().resourceType() === 'xhr') {
+            console.log(`XHR Response: ${url}, Status: ${status}, Content-Type: ${contentType}`);
+            const responseBody = await response.text();
+            console.log(`Response Body: ${responseBody}`);
         }
     });
 
-    try {
-        await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', {
-            waitUntil: 'networkidle2', // Wait until network is idle
-            timeout: 60000
-        });
+    await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', {
+        waitUntil: 'networkidle2', // Wait for the network to be idle
+        timeout: 60000 // Increase the timeout to 60 seconds
+    });
 
-        console.log('Page loaded. Check the logs for XHR responses.');
-
-    } catch (error) {
-        console.error('Error during navigation:', error);
-    } finally {
-        await browser.close();
-    }
+    console.log('Page loaded.');
+    
+    await browser.close();
 })();
