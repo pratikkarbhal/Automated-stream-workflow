@@ -1,42 +1,40 @@
-import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-
-# Stream page URL
-STREAM_PAGE_URL = "https://www.shemaroome.com/all-channels/shemaroo-marathibana"
+import time
 
 def get_stream_url():
-    # Configure Selenium to run headless in GitHub Actions
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')  # Run headless if you don't need a UI
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    
+    # Enable performance logging
+    chrome_options.add_experimental_option('w3c', False)  # Important for logging
+    chrome_options.add_experimental_option('prefs', {
+        "profile.default_content_setting_values.notifications": 2
+    })
+    
+    # Setting up the logging preferences
+    chrome_options.add_experimental_option('loggingPrefs', {
+        'performance': 'ALL',  # Enable performance logging
+    })
+    
+    service = Service('/usr/bin/chromedriver')
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    # Set up Chrome driver
-    driver = webdriver.Chrome(options=options)
+    driver.get("https://www.shemaroome.com/all-channels/shemaroo-marathibana")
 
-    try:
-        # Open the website
-        driver.get(STREAM_PAGE_URL)
-        time.sleep(10)  # Wait for the page to load fully
+    time.sleep(5)  # Wait for the page to load completely
 
-        # Get network logs and search for m3u8 URLs
-        logs = driver.get_log('performance')
-        for log in logs:
-            if ".m3u8" in log['message']:
-                start_index = log['message'].find('https')
-                end_index = log['message'].find('.m3u8') + 5
-                stream_url = log['message'][start_index:end_index]
-                print(f"Fetched Stream URL: {stream_url}")
-                return stream_url
+    # Fetch performance logs
+    logs = driver.get_log('performance')
 
-    finally:
-        driver.quit()
+    # Process the logs as per your requirement
+    for entry in logs:
+        print(entry)  # Or your logic to extract the URL
+
+    driver.quit()
 
 if __name__ == "__main__":
-    url = get_stream_url()
-    if url:
-        print(f"Stream URL: {url}")
-    else:
-        print("Failed to retrieve the stream URL.")
+    get_stream_url()
