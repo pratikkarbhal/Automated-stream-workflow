@@ -23,9 +23,8 @@ const puppeteer = require('puppeteer');
         const status = response.status();
         console.log(`Response: ${status} ${url}`); // Log response status and URL
 
-        // Check if the response is from an XHR request
-        const type = response.request().resourceType();
-        if (type === 'xhr' && url.endsWith('.m3u8')) {
+        // Check if the response URL contains .m3u8
+        if (url.includes('.m3u8')) {
             m3u8Urls.push(url);
             console.log(`M3U8 URL found: ${url}`); // Log found M3U8 URL
         }
@@ -34,12 +33,12 @@ const puppeteer = require('puppeteer');
     try {
         // Navigate to the Shemaroo Marathi Bani page with increased timeout
         await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', {
-            waitUntil: 'domcontentloaded', // Change to 'domcontentloaded'
+            waitUntil: 'networkidle2', // Wait until no more than 2 network connections are left
             timeout: 60000 // Increase timeout to 60 seconds
         });
 
-        // Wait for some time to let all requests complete
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Use setTimeout as a workaround
+        // Wait for additional time to let all requests complete
+        await new Promise(resolve => setTimeout(resolve, 10000)); // Increased wait time to ensure all XHR requests are captured
 
         // Output the collected M3U8 URLs
         console.log('M3U8 URLs found:', m3u8Urls.length > 0 ? m3u8Urls : 'No M3U8 URLs found.');
