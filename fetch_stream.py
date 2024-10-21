@@ -1,7 +1,17 @@
+import subprocess
+import sys
+
+# Check and install webdriver_manager
+try:
+    import webdriver_manager
+except ImportError:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'webdriver-manager'])
+
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
+import re
 import time
 
 def fetch_stream_url():
@@ -22,8 +32,7 @@ def fetch_stream_url():
         driver.get(url)
         time.sleep(5)  # Wait for the page to load completely
 
-        # Get the network requests using DevTools protocol (requires additional setup)
-        # You can also find the URL directly from the page source
+        # Get the page source
         page_source = driver.page_source
 
         # Find the stream URL in the page source
