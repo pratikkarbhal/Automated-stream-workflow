@@ -2,15 +2,8 @@ const puppeteer = require('puppeteer');
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: 'new', // Ensures the correct headless mode is used
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--disable-software-rasterizer',
-            '--window-size=1920,1080',
-        ],
+        headless: false,  // Set to false to see what's happening (can switch to true later)
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
     const page = await browser.newPage();
@@ -18,35 +11,46 @@ const puppeteer = require('puppeteer');
 
     const m3u8Urls = [];
 
-    // Intercept XHR requests and look for .m3u8 URLs
-    await page.setRequestInterception(true);
-    page.on('request', (request) => request.continue());
-
+    // Intercept and monitor all network requests
     page.on('response', async (response) => {
-        const url = response.url();
-        if (url.includes('.m3u8')) {
-            m3u8Urls.push(url);
-            console.log(`M3U8 URL Found: ${url}`);
+        try {
+            const url = response.url();
+            const type = response.request().resourceType();
+            
+            console.log(`[${type.toUpperCase()}] Response URL: ${url}`);  // Log all response URLs with type
+
+            // Check for XHR or fetch requests containing .m3u8
+            if (type === 'xhr' || type === 'fetch') {
+                if (url.includes('.m3u8')) {
+                    console.log(`M3U8 URL Found: ${url}`);
+                    m3u8Urls.push(url);  // Save found .m3u8 URL
+                }
+            }
+        } catch (error) {
+            console.error(`Error processing response: ${error.message}`);
         }
     });
 
     try {
         console.log('Navigating to the page...');
+        
+        // Increase timeout to avoid errors during slow loads
         await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', {
-            waitUntil: 'networkidle2',
-            timeout: 60000,
+            waitUntil: 'networkidle2',  // Ensure all requests are complete
+            timeout: 60000  // 60 seconds timeout
         });
 
-        console.log('Waiting for video element...');
-        await page.waitForSelector('video', { timeout: 20000 });
-        await page.click('video'); // Simulate click to start the stream
+        console.log('Waiting for potential XHR requests...');
+        await page.waitForTimeout(10000);  // Allow extra time for network requests
 
-        console.log('Observing for network activity...');
-        await new Promise((resolve) => setTimeout(resolve, 120000)); // Wait 2 minutes
-
-        console.log('M3U8 URLs found:', m3u8Urls.length ? m3u8Urls : 'None found.');
+        // Log the collected M3U8 URLs
+        if (m3u8Urls.length > 0) {
+            console.log('M3U8 URLs found:', m3u8Urls);
+        } else {
+            console.log('No M3U8 URLs found.');
+        }
     } catch (error) {
-        console.error('Error during execution:', error);
+        console.error(`Error during navigation: ${error.message}`);
     } finally {
         await browser.close();
     }
