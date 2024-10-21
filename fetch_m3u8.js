@@ -22,7 +22,7 @@ const puppeteer = require('puppeteer');
             console.log(`[${type.toUpperCase()}] Response URL: ${url}`);
 
             // Filter for .m3u8 URLs from XHR or fetch requests
-            if ((type === 'xhr' || type === 'fetch') && url.includes('.m3u8')) {
+            if ((type === 'xhr' || type === 'fetch') || url.includes('.m3u8')) {
                 console.log(`M3U8 URL Found: ${url}`);
                 m3u8Urls.push(url);
             }
