@@ -2,9 +2,9 @@ import subprocess
 import sys
 import time
 import re
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
+from seleniumwire import webdriver  # Import from selenium-wire
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 
 # Check and install webdriver_manager if not already installed
@@ -31,23 +31,11 @@ def fetch_stream_url():
         driver.get(url)
         time.sleep(5)  # Wait for the page to load completely
 
-        # Start capturing network traffic
-        driver.execute_cdp_cmd('Network.enable', {})
-
-        # Wait for additional requests
-        time.sleep(5)
-
-        # Get all network responses
-        responses = driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': '1'})
-
-        # Check network activity
-        network_logs = driver.execute_cdp_cmd('Network.getRequestPostData', {})
-
-        # Iterate through the requests to find the m3u8 URL
-        for request in network_logs.get('requests', []):
-            if 'cdn.live.shemaroome.com' in request.get('url', '') and 'playlist.m3u8' in request.get('url', ''):
-                print("Fetched Stream URL:", request['url'])
-                return request['url']
+        # Check for m3u8 URL in the intercepted requests
+        for request in driver.requests:
+            if 'cdn.live.shemaroome.com' in request.url and 'playlist.m3u8' in request.url:
+                print("Fetched Stream URL:", request.url)
+                return request.url
 
         print("Stream URL not found in the network requests.")
         return None
