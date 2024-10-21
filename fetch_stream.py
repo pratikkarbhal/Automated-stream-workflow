@@ -1,40 +1,29 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+import requests
 import re
-import time
 
-def get_stream_url():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run in headless mode
-    chrome_options.add_argument("--no-sandbox")  # Bypass OS security model
-    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+def fetch_stream_url():
+    # URL of the Shemaroo Marathi Bana page
+    url = "https://www.shemaroome.com/all-channels/shemaroo-marathibana"
 
-    # Start the WebDriver
-    service = Service("/usr/bin/chromedriver")
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    try:
+        # Send a GET request to the page
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error for bad responses
 
-    # Open the target URL
-    driver.get("https://www.shemaroome.com/all-channels/shemaroo-marathibana")
+        # Use regex to find the stream URL in the response text
+        match = re.search(r'https://cdn\.live\.shemaroome\.com/marathibana/smil:marathibanaadp\.smil/playlist\.m3u8\?[^"]+', response.text)
+        
+        if match:
+            stream_url = match.group(0)
+            print("Fetched Stream URL:", stream_url)
+            return stream_url
+        else:
+            print("Stream URL not found.")
+            return None
 
-    # Wait for the page to load (adjust as necessary)
-    time.sleep(10)  # Increase this time if needed
-
-    # Extract the page source
-    page_source = driver.page_source
-
-    # Use regex to find the .m3u8 URL
-    url_pattern = r"https:\/\/cdn\.live\.shemaroome\.com\/marathibana\/[^\"']+\.m3u8\?[^\"']+"  # Regex pattern for the .m3u8 URL
-    match = re.search(url_pattern, page_source)
-
-    if match:
-        stream_url = match.group(0)  # Extract the matched URL
-        print("Stream URL:", stream_url)
-    else:
-        print("No .m3u8 URL found.")
-
-    # Close the WebDriver
-    driver.quit()
+    except requests.RequestException as e:
+        print("Error fetching the stream URL:", e)
+        return None
 
 if __name__ == "__main__":
-    get_stream_url()
+    fetch_stream_url()
