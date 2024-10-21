@@ -7,43 +7,22 @@ on:
     branches:
       - main  # Triggers on push to main
 
-
 jobs:
-  fetch-stream:
+  fetch_m3u8:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y unzip wget curl
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'  # Update to at least version 16
 
-    - name: Install Chrome
-      run: |
-        wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-        sudo apt install -y ./google-chrome-stable_current_amd64.deb
+      - name: Install dependencies
+        run: |
+          npm install puppeteer
 
-    - name: Install ChromeDriver (Compatible Version)
-      run: |
-        CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-        DRIVER_VERSION=$(curl -s https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*})
-        wget https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        sudo mv chromedriver /usr/bin/chromedriver
-        sudo chmod +x /usr/bin/chromedriver
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-
-    - name: Install Selenium
-      run: |
-        pip install selenium
-
-    - name: Run fetch_stream.py
-      run: |
-        python fetch_stream.py
+      - name: Run M3U8 fetch script
+        run: node fetch_m3u8.js
