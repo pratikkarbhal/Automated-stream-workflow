@@ -28,4 +28,10 @@ jobs:
           sudo mv chromedriver /usr/bin/chromedriver
           sudo chmod +x /usr/bin/chromedriver
 
-      - name: Install dependenc
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install selenium
+
+      - name: Run fetch_stream.py
+        run: python fetch_stream.py
