@@ -31,23 +31,25 @@ def fetch_stream_url():
         driver.get(url)
         time.sleep(5)  # Wait for the page to load completely
 
-        # Wait for XHR requests to finish and get all network requests
-        time.sleep(3)  # Additional wait for XHR requests to complete
-        logs = driver.get_log('performance')  # Collect performance logs
+        # Interact with the page if necessary (e.g., click on buttons)
+        # For example, you may need to click on a play button to initiate the stream:
+        # play_button = driver.find_element_by_xpath("//button[@id='play-button-id']")  # Use the correct ID
+        # play_button.click()
+        # time.sleep(5)  # Wait for the stream to start
 
-        # Find the m3u8 URL in the logs
-        for log in logs:
-            message = log['message']
-            if 'cdn.live.shemaroome.com' in message and 'playlist.m3u8' in message:
-                # Use regex to extract the URL from the log message
-                match = re.search(r'https://cdn\.live\.shemaroome\.com/marathibana/smil:marathibanaadp\.smil/playlist\.m3u8\?[^"]+', message)
-                if match:
-                    stream_url = match.group(0)
-                    print("Fetched Stream URL:", stream_url)
-                    return stream_url
-
-        print("Stream URL not found in the network requests.")
-        return None
+        # Now look for the m3u8 URL in the page source or logs
+        page_source = driver.page_source
+        
+        # Search for the m3u8 URL in the page source
+        match = re.search(r'https://cdn\.live\.shemaroome\.com/marathibana/smil:marathibanaadp\.smil/playlist\.m3u8\?[^"]+', page_source)
+        
+        if match:
+            stream_url = match.group(0)
+            print("Fetched Stream URL:", stream_url)
+            return stream_url
+        else:
+            print("Stream URL not found in the page source.")
+            return None
 
     finally:
         driver.quit()  # Close the browser
