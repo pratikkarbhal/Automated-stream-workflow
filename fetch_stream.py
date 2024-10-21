@@ -1,41 +1,36 @@
-import asyncio
-from pyppeteer import launch
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+import time
 
-async def fetch_m3u8_url():
-    browser = await launch(headless=True, args=['--no-sandbox'])
-    page = await browser.newPage()
+def fetch_m3u8_url():
+    # Setup Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    
+    # Start the Chrome WebDriver
+    service = Service('/usr/bin/chromedriver')  # Adjust path if necessary
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    # Navigate to the Shemaroo Marathibana live stream page
-    await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', waitUntil='networkidle0')
+    try:
+        # Open the target URL
+        driver.get("https://www.shemaroome.com/all-channels/shemaroo-marathibana")
+        time.sleep(5)  # Wait for the page to load completely
 
-    # Wait for the page to load completely
-    await asyncio.sleep(5)  # Adjust if necessary
+        # Fetch network requests
+        logs = driver.get_log('performance')
+        for log in logs:
+            log_message = log['message']
+            if 'cdn.live.shemaroome.com' in log_message and 'playlist.m3u8' in log_message:
+                # Extract the M3U8 URL from the log
+                # Note: You will need to parse the log_message to extract the URL
+                print("Found M3U8 URL:", log_message)
 
-    # Get network requests
-    client = await page.target.createCDPSession()
-    await client.send('Network.enable')
+    finally:
+        driver.quit()
 
-    m3u8_url = None
-
-    # Listen for network requests
-    def log_request(request):
-        nonlocal m3u8_url
-        if 'playlist.m3u8' in request['url']:
-            m3u8_url = request['url']
-            print(f"Found M3U8 URL: {m3u8_url}")
-
-    client.on('Network.requestWillBeSent', log_request)
-
-    # Keep the browser open for a while to capture requests
-    await asyncio.sleep(30)  # Allow time to capture all requests
-
-    await browser.close()
-
-    if m3u8_url:
-        with open('m3u8_url.txt', 'w') as f:
-            f.write(m3u8_url)
-        print(f"M3U8 URL saved: {m3u8_url}")
-    else:
-        print("M3U8 URL not found.")
-
-asyncio.get_event_loop().run_until_complete(fetch_m3u8_url())
+if __name__ == "__main__":
+    fetch_m3u8_url()
