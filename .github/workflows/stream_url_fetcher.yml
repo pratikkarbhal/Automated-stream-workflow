@@ -1,37 +1,31 @@
-name: Stream URL Fetcher
+name: Fetch Stream URL
 
 on:
-  workflow_dispatch:  # Allows manual trigger
-  schedule:
-    - cron: '*/5 * * * *'  # Runs every 5 minutes
+  push:
+    branches:
+      - main
 
 jobs:
-  fetch_stream_url:
+  fetch-url:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Check out the repository
-      uses: actions/checkout@v3  # Updated to v3 to avoid Node 12 warnings
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Python environment
-      uses: actions/setup-python@v4  # Updated to v4 to avoid Node 12 warnings
-      with:
-        python-version: '3.8'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
 
-    - name: Install Chrome and Chromedriver
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y chromium-browser chromium-chromedriver
-        if [ ! -f /usr/bin/chromedriver ]; then
-          sudo ln -s /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
-        else
-          echo "Chromedriver already exists, skipping symlink creation."
-        fi
+      - name: Install Chrome and ChromeDriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          sudo apt-get install -y google-chrome-stable
+          CHROMEDRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE)
+          wget https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/bin/chromedriver
+          sudo chmod +x /usr/bin/chromedriver
 
-    - name: Install Selenium
-      run: pip install selenium
-
-    - name: Run Python Script
-      env:
-        PATH: /usr/lib/chromium-browser/:$PATH  # Ensure Chromedriver is in PATH
-      run: python fetch_stream.py
+      - name: Install dependenc
