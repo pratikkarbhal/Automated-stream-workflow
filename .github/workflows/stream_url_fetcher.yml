@@ -30,21 +30,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y google-chrome-stable
 
-    - name: Get Chrome Version
-      id: get_chrome_version
+    - name: Install ChromeDriver
       run: |
-        CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-        MAJOR_VERSION=$(echo $CHROME_VERSION | cut -d '.' -f 1)
-        echo "CHROME_VERSION=$CHROME_VERSION" >> $GITHUB_ENV
-        echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
-        echo "Chrome version: $CHROME_VERSION"
-        echo "Major version: $MAJOR_VERSION"
-
-    - name: Download ChromeDriver
-      run: |
-        echo "Downloading ChromeDriver for Chrome major version: $MAJOR_VERSION"
-        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$MAJOR_VERSION")
-        echo "ChromeDriver version to download: $CHROMEDRIVER_VERSION"
+        # Install a specific version of ChromeDriver
+        CHROMEDRIVER_VERSION=130.0.6723.63  # Change this to the desired version
+        echo "Downloading ChromeDriver version: $CHROMEDRIVER_VERSION"
         wget "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
         unzip chromedriver_linux64.zip
         chmod +x chromedriver
@@ -53,4 +43,3 @@ jobs:
     - name: Run Stream URL Fetcher
       run: |
         python fetch_stream.py
-
