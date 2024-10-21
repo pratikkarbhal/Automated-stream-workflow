@@ -1,42 +1,44 @@
-import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+import time
 
 def fetch_stream_url():
-    # URL of the Shemaroo Marathi Bana API endpoint (adjust accordingly)
-    url = "https://cdn.live.shemaroome.com/marathibana/smil:marathibanaadp.smil/playlist.m3u8"
+    # URL of the Shemaroo Marathi Bana page
+    url = "https://www.shemaroome.com/all-channels/shemaroo-marathibana"
 
-    # Set headers to mimic a browser request
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
-        'Referer': 'https://www.shemaroome.com/all-channels/shemaroo-marathibana',
-        'Accept': 'application/json, text/javascript, */*; q=0.01',
-        'X-Requested-With': 'XMLHttpRequest',
-    }
+    # Set up Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run headless Chrome
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
 
-    # Optional: Add cookies if required (get these from your browser)
-    cookies = {
-        'cookie_name': 'cookie_value',  # replace with actual cookie names and values
-        # Add more cookies as needed
-    }
+    # Initialize the WebDriver
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
 
     try:
-        # Send a GET request to the XHR URL with headers and cookies
-        response = requests.get(url, headers=headers, cookies=cookies)
-        response.raise_for_status()  # Raise an error for bad responses
-        
-        # Debugging: Print the response text
-        print("Response text:", response.text)
+        # Open the URL
+        driver.get(url)
+        time.sleep(5)  # Wait for the page to load completely
 
-        # Check if the response contains the stream URL
-        if "playlist.m3u8" in response.text:
-            print("Fetched Stream URL:", url)
-            return url
+        # Get the network requests using DevTools protocol (requires additional setup)
+        # You can also find the URL directly from the page source
+        page_source = driver.page_source
+
+        # Find the stream URL in the page source
+        match = re.search(r'https://cdn\.live\.shemaroome\.com/marathibana/smil:marathibanaadp\.smil/playlist\.m3u8\?[^"]+', page_source)
+        
+        if match:
+            stream_url = match.group(0)
+            print("Fetched Stream URL:", stream_url)
+            return stream_url
         else:
-            print("Stream URL not found in the response.")
+            print("Stream URL not found in the page source.")
             return None
 
-    except requests.RequestException as e:
-        print("Error fetching the stream URL:", e)
-        return None
+    finally:
+        driver.quit()  # Close the browser
 
 if __name__ == "__main__":
     fetch_stream_url()
