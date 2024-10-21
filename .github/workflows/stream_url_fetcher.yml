@@ -1,37 +1,27 @@
 name: Fetch Stream URL
 
 on:
-  push:
-    branches:
-      - main  # Change this if your main branch has a different name
+  schedule:
+    - cron: '*/10 * * * *'  # Runs every 10 minutes
 
 jobs:
-  fetch-url:
+  fetch_stream_url:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'  # Specify the Python version
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'  # Use the latest Python version
 
-      - name: Install Chrome and ChromeDriver
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip
-          sudo apt-get install -y google-chrome-stable
-          CHROMEDRIVER_VERSION=$(google-chrome --version | grep -oP '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
-          wget https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/bin/chromedriver
-          sudo chmod +x /usr/bin/chromedriver
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install selenium
-
-      - name: Run fetch_stream.py
-        run: python fetch_stream.py
+    - name: Run Stream URL Fetcher
+      run: |
+        python fetch_stream.py
