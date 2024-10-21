@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: false,  // Set to false to see what's happening (can switch to true later)
+        headless: true,  // Set to false to see what's happening (can switch to true later)
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
