@@ -1,50 +1,41 @@
-import subprocess
-import sys
-import time
-import re
-from seleniumwire import webdriver  # Import from selenium-wire
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.chrome.options import Options
+import asyncio
+from pyppeteer import launch
 
-# Check and install webdriver_manager if not already installed
-try:
-    import webdriver_manager
-except ImportError:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'webdriver-manager'])
+async def fetch_m3u8_url():
+    browser = await launch(headless=True, args=['--no-sandbox'])
+    page = await browser.newPage()
 
-def fetch_stream_url():
-    # URL of the Shemaroo Marathi Bana page
-    url = "https://www.shemaroome.com/all-channels/shemaroo-marathibana"
+    # Navigate to the Shemaroo Marathibana live stream page
+    await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', waitUntil='networkidle0')
 
-    # Set up Chrome options
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run headless Chrome
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
+    # Wait for the video element to load
+    await page.waitForSelector('video')
 
-    # Initialize the WebDriver
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
+    # Get network requests
+    client = await page.target.createCDPSession()
+    await client.send('Network.enable')
 
-    try:
-        # Open the URL
-        driver.get(url)
-        time.sleep(5)  # Wait for the page to load completely
+    m3u8_url = None
 
-        # Check for m3u8 URL in the intercepted requests
-        for request in driver.requests:
-            if 'cdn.live.shemaroome.com' in request.url and 'playlist.m3u8' in request.url:
-                print("Fetched Stream URL:", request.url)
-                return request.url
+    def log_request(request):
+        nonlocal m3u8_url
+        if 'playlist.m3u8' in request['url']:
+            m3u8_url = request['url']
+            print(f"Found M3U8 URL: {m3u8_url}")
 
-        print("Stream URL not found in the network requests.")
-        return None
+    await client.send('Network.setRequestInterception', {'enabled': True})
+    client.on('Network.requestWillBeSent', log_request)
 
-    except Exception as e:
-        print("Error:", e)
+    # Keep the browser open for a while to capture requests
+    await asyncio.sleep(30)  # Adjust this as needed to allow enough time for the requests to be logged
 
-    finally:
-        driver.quit()  # Close the browser
+    await browser.close()
 
-if __name__ == "__main__":
-    fetch_stream_url()
+    if m3u8_url:
+        with open('m3u8_url.txt', 'w') as f:
+            f.write(m3u8_url)
+        print(f"M3U8 URL saved: {m3u8_url}")
+    else:
+        print("M3U8 URL not found.")
+
+asyncio.get_event_loop().run_until_complete(fetch_m3u8_url())
