@@ -28,7 +28,7 @@ const puppeteer = require('puppeteer');
         });
 
         // Wait for some time to let all requests complete
-        await page.waitForTimeout(5000); // Adjust timeout as needed
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Use setTimeout as a workaround
 
         // Output the collected M3U8 URLs
         console.log('M3U8 URLs found:', m3u8Urls.length > 0 ? m3u8Urls : 'No M3U8 URLs found.');
