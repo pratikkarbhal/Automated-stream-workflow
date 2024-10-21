@@ -34,7 +34,7 @@ const puppeteer = require('puppeteer');
     try {
         console.log('Navigating to the page...');
 
-        await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', {
+        await page.goto('https://marathi.abplive.com/live-tv', {
             waitUntil: 'networkidle2', // Wait for network to settle
             timeout: 120000, // 1-minute timeout
         });
