@@ -23,7 +23,9 @@ const puppeteer = require('puppeteer');
         const status = response.status();
         console.log(`Response: ${status} ${url}`); // Log response status and URL
 
-        if (url.endsWith('.m3u8')) {
+        // Check if the response is from an XHR request
+        const type = response.request().resourceType();
+        if (type === 'xhr' && url.endsWith('.m3u8')) {
             m3u8Urls.push(url);
             console.log(`M3U8 URL found: ${url}`); // Log found M3U8 URL
         }
