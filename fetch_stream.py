@@ -8,8 +8,8 @@ async def fetch_m3u8_url():
     # Navigate to the Shemaroo Marathibana live stream page
     await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', waitUntil='networkidle0')
 
-    # Wait for the video element to load
-    await page.waitForSelector('video')
+    # Wait for the page to load completely
+    await asyncio.sleep(5)  # Adjust if necessary
 
     # Get network requests
     client = await page.target.createCDPSession()
@@ -17,17 +17,17 @@ async def fetch_m3u8_url():
 
     m3u8_url = None
 
+    # Listen for network requests
     def log_request(request):
         nonlocal m3u8_url
         if 'playlist.m3u8' in request['url']:
             m3u8_url = request['url']
             print(f"Found M3U8 URL: {m3u8_url}")
 
-    await client.send('Network.setRequestInterception', {'enabled': True})
     client.on('Network.requestWillBeSent', log_request)
 
     # Keep the browser open for a while to capture requests
-    await asyncio.sleep(30)  # Adjust this as needed to allow enough time for the requests to be logged
+    await asyncio.sleep(30)  # Allow time to capture all requests
 
     await browser.close()
 
