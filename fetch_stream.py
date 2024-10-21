@@ -31,25 +31,29 @@ def fetch_stream_url():
         driver.get(url)
         time.sleep(5)  # Wait for the page to load completely
 
-        # Interact with the page if necessary (e.g., click on buttons)
-        # For example, you may need to click on a play button to initiate the stream:
-        # play_button = driver.find_element_by_xpath("//button[@id='play-button-id']")  # Use the correct ID
-        # play_button.click()
-        # time.sleep(5)  # Wait for the stream to start
+        # Start capturing network traffic
+        driver.execute_cdp_cmd('Network.enable', {})
 
-        # Now look for the m3u8 URL in the page source or logs
-        page_source = driver.page_source
-        
-        # Search for the m3u8 URL in the page source
-        match = re.search(r'https://cdn\.live\.shemaroome\.com/marathibana/smil:marathibanaadp\.smil/playlist\.m3u8\?[^"]+', page_source)
-        
-        if match:
-            stream_url = match.group(0)
-            print("Fetched Stream URL:", stream_url)
-            return stream_url
-        else:
-            print("Stream URL not found in the page source.")
-            return None
+        # Wait for additional requests
+        time.sleep(5)
+
+        # Get all network responses
+        responses = driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': '1'})
+
+        # Check network activity
+        network_logs = driver.execute_cdp_cmd('Network.getRequestPostData', {})
+
+        # Iterate through the requests to find the m3u8 URL
+        for request in network_logs.get('requests', []):
+            if 'cdn.live.shemaroome.com' in request.get('url', '') and 'playlist.m3u8' in request.get('url', ''):
+                print("Fetched Stream URL:", request['url'])
+                return request['url']
+
+        print("Stream URL not found in the network requests.")
+        return None
+
+    except Exception as e:
+        print("Error:", e)
 
     finally:
         driver.quit()  # Close the browser
