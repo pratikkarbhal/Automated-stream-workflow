@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - main  # Triggers on push to main
-
+      
 jobs:
   fetch-url:
     runs-on: ubuntu-latest
@@ -17,14 +17,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9' # Adjust the version as needed
+          python-version: '3.9'  # Adjust the version as needed
 
       - name: Install dependencies
         run: |
-          pip install pyppeteer
+          pip install selenium
+          apt-get update
+          apt-get install -y chromium-chromedriver
+          cp /usr/bin/chromedriver /usr/bin/chromedriver
 
       - name: Run fetch_stream.py
-        env:
-          NODE_OPTIONS: --no-sandbox
-        run: |
-          python fetch_stream.py
+        run: python fetch_stream.py
