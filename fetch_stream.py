@@ -37,8 +37,7 @@ def get_stream_url():
     logs = driver.get_log('performance')
 
     m3u8_url = None
-    # Fixed regex pattern for the .m3u8 URL
-    url_pattern = r"https:\/\/cdn\.live\.shemaroome\.com\/marathibana\/[^?]+\.m3u8\?[^ ]+"  
+    url_pattern = r"https:\/\/cdn\.live\.shemaroome\.com\/marathibana\/[^"]+\.m3u8\?[^"]+"  # Regex pattern for the .m3u8 URL
 
     for entry in logs:
         log_entry = json.loads(entry['message'])['message']
