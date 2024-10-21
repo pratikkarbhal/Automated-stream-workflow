@@ -20,14 +20,22 @@ const puppeteer = require('puppeteer');
         request.continue();
     });
 
-    // Navigate to the Shemaroo Marathi Bani page
-    await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', { waitUntil: 'networkidle2' });
+    try {
+        // Navigate to the Shemaroo Marathi Bani page with increased timeout
+        await page.goto('https://www.shemaroome.com/all-channels/shemaroo-marathibana', {
+            waitUntil: 'domcontentloaded', // Change to 'domcontentloaded'
+            timeout: 60000 // Increase timeout to 60 seconds
+        });
 
-    // Wait for some time to let all requests complete
-    await page.waitForTimeout(5000); // Adjust timeout as needed
+        // Wait for some time to let all requests complete
+        await page.waitForTimeout(5000); // Adjust timeout as needed
 
-    // Output the collected M3U8 URLs
-    console.log('M3U8 URLs found:', m3u8Urls);
+        // Output the collected M3U8 URLs
+        console.log('M3U8 URLs found:', m3u8Urls.length > 0 ? m3u8Urls : 'No M3U8 URLs found.');
 
-    await browser.close();
+    } catch (error) {
+        console.error('Error during navigation:', error);
+    } finally {
+        await browser.close();
+    }
 })();
