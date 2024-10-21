@@ -1,18 +1,17 @@
 import subprocess
 import sys
-
-# Check and install webdriver_manager
-try:
-    import webdriver_manager
-except ImportError:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'webdriver-manager'])
-
+import time
+import re
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
-import re
-import time
+
+# Check and install webdriver_manager if not already installed
+try:
+    import webdriver_manager
+except ImportError:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'webdriver-manager'])
 
 def fetch_stream_url():
     # URL of the Shemaroo Marathi Bana page
@@ -32,19 +31,23 @@ def fetch_stream_url():
         driver.get(url)
         time.sleep(5)  # Wait for the page to load completely
 
-        # Get the page source
-        page_source = driver.page_source
+        # Wait for XHR requests to finish and get all network requests
+        time.sleep(3)  # Additional wait for XHR requests to complete
+        logs = driver.get_log('performance')  # Collect performance logs
 
-        # Find the stream URL in the page source
-        match = re.search(r'https://cdn\.live\.shemaroome\.com/marathibana/smil:marathibanaadp\.smil/playlist\.m3u8\?[^"]+', page_source)
-        
-        if match:
-            stream_url = match.group(0)
-            print("Fetched Stream URL:", stream_url)
-            return stream_url
-        else:
-            print("Stream URL not found in the page source.")
-            return None
+        # Find the m3u8 URL in the logs
+        for log in logs:
+            message = log['message']
+            if 'cdn.live.shemaroome.com' in message and 'playlist.m3u8' in message:
+                # Use regex to extract the URL from the log message
+                match = re.search(r'https://cdn\.live\.shemaroome\.com/marathibana/smil:marathibanaadp\.smil/playlist\.m3u8\?[^"]+', message)
+                if match:
+                    stream_url = match.group(0)
+                    print("Fetched Stream URL:", stream_url)
+                    return stream_url
+
+        print("Stream URL not found in the network requests.")
+        return None
 
     finally:
         driver.quit()  # Close the browser
